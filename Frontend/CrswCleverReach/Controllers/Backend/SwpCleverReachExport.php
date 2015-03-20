@@ -139,7 +139,11 @@ class Shopware_Controllers_Backend_SwpCleverReachExport extends Shopware_Control
         $interested_emails = Shopware()->Db()->fetchCol('SELECT email FROM s_campaigns_mailaddresses WHERE customer=0 AND groupID="'.Shopware()->Config()->newsletterdefaultgroup.'" LIMIT '.$limit_lower.', '.$export_limit);
 
         foreach($interested_emails as $email) {
-            $emailData = Shopware()->Db()->fetchRow('SELECT salutation, firstname, lastname, street, streetnumber, zipcode, city, added FROM s_campaigns_maildata WHERE email="'.$email.'" AND deleted IS NULL');
+            if($this->Plugin()->assertVersionGreaterThenLocal("5.0.0")){
+                $emailData = Shopware()->Db()->fetchRow('SELECT salutation, firstname, lastname, street, zipcode, city, added FROM s_campaigns_maildata WHERE email="'.$email.'" AND deleted IS NULL');
+            } else {
+                $emailData = Shopware()->Db()->fetchRow('SELECT salutation, firstname, lastname, street, streetnumber, zipcode, city, added FROM s_campaigns_maildata WHERE email="'.$email.'" AND deleted IS NULL');
+            }
 
             $attributesData = array();
             $attributesData[] = array('key' => 'anrede', 'value' => ($emailData['salutation'] == 'ms') ? 'Frau' : 'Herr');

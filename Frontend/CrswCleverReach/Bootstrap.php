@@ -16,6 +16,7 @@
  * @version 5.0.7 / add some try-catch to the frontend controller // 2014-12-02
  * @version 5.0.8 / add tooltips to some customer groups // 2014-12-08
  * @version 5.0.9 / the Shopware newsletter email is not sent anymore // 2015-01-21
+ * @version 6.0.1 / SW5: remove streetnumber // 2015-03-20
  */
 
 /*
@@ -439,13 +440,25 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
         }
         return $params;
     }
+
+    /** Get Shopware version
+     *
+     * @param <type> $version
+     * @return <type>
+     */
+    public function assertVersionGreaterThenLocal($version) {
+        if ($this->assertVersionGreaterThen($version)) {
+            return true;
+        }
+        return false;
+    }
     /**
      * Get version tag of this plugin to display in manager
      *
      * @return string
      */
     public function getVersion() {
-        return '5.0.9';
+        return '6.0.1';
     }
     /**
      * get the main info for the plugin
