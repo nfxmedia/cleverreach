@@ -62,6 +62,9 @@ class Shopware_Controllers_Backend_SwpCleverReachExport extends Shopware_Control
             $attributesData[] = array('key' => 'stadt', 'value' => $customerInfo['billing']['city']);
             $attributesData[] = array('key' => 'land', 'value' => Shopware()->Db()->fetchOne('SELECT countryname FROM s_core_countries WHERE id="'.$customerInfo['billing']['countryId'].'"'));
             $attributesData[] = array('key' => 'newsletter', 'value' => $newsletter);
+            if($this->Plugin()->transferOrderCode()){
+                $attributesData[] = array('key' => 'bestellcode', 'value' => $customerInfo["attribute"]["smShopcode"]);
+            }
 
             $orders = array();
             $orderData = array();
@@ -153,6 +156,9 @@ class Shopware_Controllers_Backend_SwpCleverReachExport extends Shopware_Control
             $attributesData[] = array('key' => 'postleitzahl', 'value' => $emailData['zipcode']);
             $attributesData[] = array('key' => 'stadt', 'value' => $emailData['city']);
             $attributesData[] = array('key' => 'newsletter', 'value' => "1");
+            if($this->Plugin()->transferOrderCode()){
+                $attributesData[] = array('key' => 'bestellcode', 'value' => "");
+            }
 
             $user[] = array(
                 'email' => $email,
@@ -228,6 +234,9 @@ class Shopware_Controllers_Backend_SwpCleverReachExport extends Shopware_Control
         $api->groupAttributeAdd($apiKey, $listID, "Stadt", "text", '');
         $api->groupAttributeAdd($apiKey, $listID, "Land", "text", '');
         $api->groupAttributeAdd($apiKey, $listID, "Newsletter", "text", '');
+        if($this->Plugin()->transferOrderCode()){
+            $api->groupAttributeAdd($apiKey, $listID, "Bestellcode", "text", '');
+        }
     }
     /**
      * display redirect content and progress bar

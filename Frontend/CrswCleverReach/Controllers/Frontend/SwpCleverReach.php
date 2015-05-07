@@ -52,6 +52,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $data['postleitzahl'] = $request['zipcode'];
         $data['stadt'] = $request['city'];
         $data['newsletter'] = $status;
+        if(self::Plugin()->transferOrderCode()){
+            $data['bestellcode']= "";
+        }
 
         return $data;
     }
@@ -89,6 +92,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         }
 
         $data['newsletter'] = $status;
+        if(self::Plugin()->transferOrderCode()){
+            $data['bestellcode']= $customer["additional"]["user"]["smShopcode"];
+        }
 
         return $data;
     }
@@ -263,6 +269,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $api->groupAttributeAdd($apiKey, $listID, "Stadt", "text", '');
         $api->groupAttributeAdd($apiKey, $listID, "Land", "text", '');
         $api->groupAttributeAdd($apiKey, $listID, "Newsletter", "text", '');
+        if(self::Plugin()->transferOrderCode()){
+            $api->groupAttributeAdd($apiKey, $listID, "Bestellcode", "text", '');
+        }
     }
 
     /**
