@@ -19,6 +19,7 @@
  * @version 5.0.9 / the Shopware newsletter email is not sent anymore // 2015-01-21
  * @version 6.0.1 / SW5: remove streetnumber // 2015-03-20
  * @version 6.0.2 / add "individual adjustments" // 2015-04-09
+ * @version 6.0.3 / fix linkDetailsRewrited // 2015-05-07
  */
 /*
  * development debug function
@@ -575,7 +576,7 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
      * @return string
      */
     public function getVersion() {
-        return '6.0.2';
+        return '6.0.3';
     }
 
     /**

@@ -343,7 +343,8 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                     $product = Shopware()->System()->sMODULES['sArticles']->sGetArticleById($product_id);
 
                     if ($product['linkDetailsRewrited'])
-                        $url .= str_replace('http:///', '', $product['linkDetailsRewrited']);
+                        //$url .= str_replace('http:///', '', $product['linkDetailsRewrited']);
+                        $url = $product['linkDetailsRewrited'];
                     else
                         $url .= $product['linkDetails'];
 
