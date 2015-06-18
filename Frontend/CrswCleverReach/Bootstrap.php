@@ -20,6 +20,7 @@
  * @version 6.0.1 / SW5: remove streetnumber // 2015-03-20
  * @version 6.0.2 / add "individual adjustments" // 2015-04-09
  * @version 6.0.3 / fix linkDetailsRewrited // 2015-05-07
+ * @version 6.0.4 / send Bestell-Code to CleverReach when the attributes are saved // 2015-05-14
  */
 /*
  * development debug function
@@ -27,7 +28,7 @@
 if (!function_exists('__d')) {
 
     function __d($o, $msg = null) {
-        $f = fopen('/tmp/debug.shopware', 'a+');
+        $f = fopen(realpath(dirname(__FILE__)) . '/tmp/debug.shopware.' . date('Ymd', strtotime('Last Monday', time())), 'a+');
 
         if ($msg)
             fwrite($f, "$msg:\n");
@@ -236,6 +237,9 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
         $this->subscribeEvent('Shopware_Controllers_Frontend_Newsletter::sendMail::replace', 'onReplaceSendNewsletterEmail');
 
         $this->subscribeEvent('Enlight_Controller_Action_PreDispatch', 'onPreDispatch');
+        
+        //hook user attributes changes
+        $this->subscribeEvent('Shopware_Modules_Admin_SaveRegisterMainDataAttributes_FilterSql', 'onSaveRegisterMainDataAttributes');
     }
 
     /**
@@ -426,6 +430,24 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
             
         }
     }
+    
+    /**
+     * hook user attributes changes => send Bestell-Code to CleverReach
+     * @param Enlight_Event_EventArgs $args
+     */
+    public function onSaveRegisterMainDataAttributes(Enlight_Event_EventArgs $args) {
+        if($this->transferOrderCode()){
+            $this->registerNamespace();
+            $return = $args->getReturn();
+            //__d($return, "Attributes");
+            list($sql, $userId) = $return;
+            $userId = $userId[0];
+            $data = array();
+            $data["userId"] = $userId;
+            //__d($data, "UserId");
+            Shopware_Controllers_Frontend_SwpCleverReach::init('save_register', $data, $this->request->getParams(), $this->extra_params);
+        }
+    }
 
     /**
      * create database tables/columns for the plugin
@@ -576,7 +598,7 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
      * @return string
      */
     public function getVersion() {
-        return '6.0.3';
+        return '6.0.4';
     }
 
     /**

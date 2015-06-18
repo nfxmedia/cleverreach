@@ -15,6 +15,8 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         //send data to CleverReach only if the Groups for this shop were set
         $shopID = Shopware()->Shop()->getId();
         $settings = self::Plugin()->getSettings($shopID);
+        //__d($shopID, "shopID");
+        //__d($settings, "Settings");
         if ($settings["groups"] != true) {
             return;
         }
@@ -34,11 +36,19 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
 
                 $data = self::prepareDataFromAccount($status);
                 break;
+            case 'save_register':
+                $data = self::prepareDataFromDb($params);
+                $registerUser = $params;
+                break;
             default:
                 return;
         }
 
-        self::sendToCleverReach($params['status'], $params['email'], $data, $order, $extra_params);
+        try {
+            self::sendToCleverReach($params['status'], $params['email'], $data, $order, $registerUser, $extra_params);
+        } catch (Exception $ex) {
+            //__d($ex->getMessage());
+        }
     }
 
     /**
@@ -52,8 +62,8 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $data['postleitzahl'] = $request['zipcode'];
         $data['stadt'] = $request['city'];
         $data['newsletter'] = $status;
-        if(self::Plugin()->transferOrderCode()){
-            $data['bestellcode']= "";
+        if (self::Plugin()->transferOrderCode()) {
+            $data['bestellcode'] = "";
         }
 
         return $data;
@@ -72,14 +82,14 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $data['strasse'] = $customer['billingaddress']['street'] . ' ' . $customer['billingaddress']['streetnumber'];
         $data['postleitzahl'] = $customer['billingaddress']['zipcode'];
         $data['stadt'] = $customer['billingaddress']['city'];
-        try{
+        try {
             $data['land'] = Shopware()->Db()->fetchOne("SELECT countryname FROM s_core_countries WHERE id='" . $customer['billingaddress']['countryID'] . "'");
         } catch (Exception $ex) {
             //nothing to do; this shouldn't crash, but we had some strange behaviour for a client
         }
 
         if ($status == 0) {
-            try{
+            try {
                 $count = Shopware()->Db()->fetchOne("SELECT COUNT(*) FROM s_campaigns_mailaddresses WHERE email='" . $customer['additional']['user']['email'] . "'");
             } catch (Exception $ex) {
                 //nothing to do;
@@ -92,8 +102,8 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         }
 
         $data['newsletter'] = $status;
-        if(self::Plugin()->transferOrderCode()){
-            $data['bestellcode']= $customer["additional"]["user"]["smShopcode"];
+        if (self::Plugin()->transferOrderCode()) {
+            $data['bestellcode'] = $customer["additional"]["user"]["smShopcode"];
         }
 
         return $data;
@@ -113,6 +123,89 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $params['status'] = true;
 
         return $order;
+    }
+
+    /**
+     * prepare data from DB
+     */
+    protected static function prepareDataFromDb(&$params) {
+        $select = Shopware()->Db()
+                ->select()
+                ->from(array('u' => 's_user'), array(
+                    'email',
+                    'customergroup'
+                        )
+                )
+                ->joinLeft(array("ua" => "s_user_attributes"), "u.id = ua.userId", array(
+                    'sm_shopcode'
+                        )
+                )
+                ->joinLeft(array("ub" => "s_user_billingaddress"), "u.id = ub.userId", array(
+                    'company',
+                    "salutation",
+                    "firstname",
+                    "lastname",
+                    "street",
+                    "streetnumber" => ((self::Plugin()->assertVersionGreaterThenLocal("5.0.0")) ? "" : "streetnumber"),
+                    "zipcode",
+                    "city"
+                        )
+                )
+                ->joinLeft(array("cc" => "s_core_countries"), "ub.countryID = cc.id", array(
+                    'countryname'
+                        )
+                )
+                ->where("u.id = '" . $params['userId'] . "'");
+        $customer = Shopware()->Db()->fetchRow($select);
+
+        //__d($customer, "Customer");
+
+        if($customer['company']){
+            $data['firma'] = $customer['company'];
+        }
+        if($customer['salutation']){
+            $data['anrede'] = ($customer['salutation'] == 'ms') ? 'Frau' : 'Herr';
+        }
+        if($customer['firstname']){
+            $data['vorname'] = $customer['firstname'];
+        }
+        if($customer['lastname']){
+            $data['nachname'] = $customer['lastname'];
+        }
+        if($customer['street']){
+            $data['strasse'] = trim($customer['street'] . ' ' . $customer['streetnumber']);
+        }
+        if($customer['zipcode']){
+            $data['postleitzahl'] = $customer['zipcode'];
+        }
+        if($customer['city']){
+            $data['stadt'] = $customer['city'];
+        }
+        if($customer['countryren']){
+            $data['land'] = $customer["countryren"];
+        }
+
+        try {
+            $count = Shopware()->Db()->fetchOne("SELECT COUNT(*) FROM s_campaigns_mailaddresses WHERE email='" . $customer['email'] . "'");
+        } catch (Exception $ex) {
+            //nothing to do;
+        }
+
+        if ($count == "0")
+            $status = "0";
+        else
+            $status = "1";
+
+        $data['newsletter'] = $status;
+        if (self::Plugin()->transferOrderCode()) {
+            $data['bestellcode'] = $customer["sm_shopcode"];
+        }
+
+        $params['email'] = $customer['email'];
+        $params['status'] = true;
+        $params['customergroup'] = $customer['customergroup'];
+
+        return $data;
     }
 
     /**
@@ -147,11 +240,20 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
 
     /**
      * send data to CleverReach
+     * @param type $status
+     * @param type $email
+     * @param type $data
+     * @param type $order
+     * @param type $registerUser
+     * @param type $extra_params
+     * @return type
      */
-    protected static function sendToCleverReach($status, $email, $data, $order, $extra_params) {
+    protected static function sendToCleverReach($status, $email, $data, $order, $registerUser, $extra_params) {
         $config = self::Plugin()->getConfig(); // api_key | wsdl_url
-
-        $listAndForm = self::getListAndForm($order);
+        //__d($email, "Email");
+        //__d($data, "Data");
+        $listAndForm = self::getListAndForm($order, $registerUser);
+        //__d($listAndForm, "listAndForm");
         $listID = $listAndForm["listID"];
         $formID = $listAndForm["formID"];
         if (!$listID) {
@@ -232,23 +334,34 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
      * get list-ID assigned to the customer
      * +
      * get form-ID for opt-in
+     * @param type $order
+     * @param type $registerUser
+     * @return type
      */
-    protected static function getListAndForm($order) {
+    protected static function getListAndForm($order, $registerUser) {
         $shopID = Shopware()->Shop()->getId();
         $customer = Shopware()->System()->sMODULES['sAdmin']->sGetUserData();
 
+        $userId = $customer['additional']['user']['id'];
+        $groupkey = $customer['additional']['user']['customergroup'];
+        if(!$userId){
+            //check if it is an update for attributes
+            //__d($registerUser, 'registerUser');
+            $userId = $registerUser["userId"];
+            $groupkey = $registerUser["customergroup"];
+        }
         // 0 = Bestellkunden / 100 = Interessenten
 
-        if (!$customer['additional']['user']['id'])
+        if (!$userId)
             $customergroup = 100;
         else {
             if (count($order) > 0) {
                 if ($customer['additional']['user']['newsletter'] == 0)
                     $customergroup = 0;
                 else
-                    $customergroup = Shopware()->Db()->fetchOne("SELECT id FROM s_core_customergroups WHERE groupkey='" . $customer['additional']['user']['customergroup'] . "'");
+                    $customergroup = Shopware()->Db()->fetchOne("SELECT id FROM s_core_customergroups WHERE groupkey='" . $groupkey . "'");
             } else
-                $customergroup = Shopware()->Db()->fetchOne("SELECT id FROM s_core_customergroups WHERE groupkey='" . $customer['additional']['user']['customergroup'] . "'");
+                $customergroup = Shopware()->Db()->fetchOne("SELECT id FROM s_core_customergroups WHERE groupkey='" . $groupkey . "'");
         }
 
         $list = Shopware()->Db()->fetchRow("SELECT listID, formID FROM swp_cleverreach_assignments WHERE shop='" . $shopID . "' AND customergroup='" . $customergroup . "'");
@@ -269,7 +382,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $api->groupAttributeAdd($apiKey, $listID, "Stadt", "text", '');
         $api->groupAttributeAdd($apiKey, $listID, "Land", "text", '');
         $api->groupAttributeAdd($apiKey, $listID, "Newsletter", "text", '');
-        if(self::Plugin()->transferOrderCode()){
+        if (self::Plugin()->transferOrderCode()) {
             $api->groupAttributeAdd($apiKey, $listID, "Bestellcode", "text", '');
         }
     }
@@ -343,7 +456,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                     $product = Shopware()->System()->sMODULES['sArticles']->sGetArticleById($product_id);
 
                     if ($product['linkDetailsRewrited'])
-                        //$url .= str_replace('http:///', '', $product['linkDetailsRewrited']);
+                    //$url .= str_replace('http:///', '', $product['linkDetailsRewrited']);
                         $url = $product['linkDetailsRewrited'];
                     else
                         $url .= $product['linkDetails'];
