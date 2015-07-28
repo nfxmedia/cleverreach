@@ -21,6 +21,7 @@
  * @version 6.0.2 / add "individual adjustments" // 2015-04-09
  * @version 6.0.3 / fix linkDetailsRewrited // 2015-05-07
  * @version 6.0.4 / send Bestell-Code to CleverReach when the attributes are saved // 2015-05-14
+ * @version 6.0.5 / fix newsletter issue for the Bestell-Code case // 2015-07-23
  */
 /*
  * development debug function
@@ -436,15 +437,16 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
      * @param Enlight_Event_EventArgs $args
      */
     public function onSaveRegisterMainDataAttributes(Enlight_Event_EventArgs $args) {
+        __d("onSaveRegisterMainDataAttributes");
         if($this->transferOrderCode()){
             $this->registerNamespace();
             $return = $args->getReturn();
-            //__d($return, "Attributes");
+            __d($return, "Attributes");
             list($sql, $userId) = $return;
             $userId = $userId[0];
             $data = array();
             $data["userId"] = $userId;
-            //__d($data, "UserId");
+            __d($data, "UserId");
             Shopware_Controllers_Frontend_SwpCleverReach::init('save_register', $data, $this->request->getParams(), $this->extra_params);
         }
     }
@@ -598,7 +600,7 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
      * @return string
      */
     public function getVersion() {
-        return '6.0.4';
+        return '6.0.5';
     }
 
     /**
