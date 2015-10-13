@@ -15,8 +15,8 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         //send data to CleverReach only if the Groups for this shop were set
         $shopID = Shopware()->Shop()->getId();
         $settings = self::Plugin()->getSettings($shopID);
-        __d($shopID, "shopID");
-        __d($settings, "Settings");
+        //__d($shopID, "shopID");
+        //__d($settings, "Settings");
         if ($settings["groups"] != true) {
             return;
         }
@@ -47,7 +47,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         try {
             self::sendToCleverReach($params['status'], $params['email'], $data, $order, $registerUser, $extra_params);
         } catch (Exception $ex) {
-            __d($ex->getMessage());
+            //__d($ex->getMessage());
         }
     }
 
@@ -158,7 +158,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                 ->where("u.id = '" . $params['userId'] . "'");
         $customer = Shopware()->Db()->fetchRow($select);
 
-        __d($customer, "Customer");
+        //__d($customer, "Customer");
 
         if($customer['company']){
             $data['firma'] = $customer['company'];
@@ -251,10 +251,10 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
      */
     protected static function sendToCleverReach($status, $email, $data, $order, $registerUser, $extra_params) {
         $config = self::Plugin()->getConfig(); // api_key | wsdl_url
-        __d($email, "Email");
-        __d($data, "Data");
+        //__d($email, "Email");
+        //__d($data, "Data");
         $listAndForm = self::getListAndForm($order, $registerUser);
-        __d($listAndForm, "listAndForm");
+        //__d($listAndForm, "listAndForm");
         $listID = $listAndForm["listID"];
         $formID = $listAndForm["formID"];
         if (!$listID) {
@@ -348,7 +348,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $newsletter = $customer['additional']['user']['newsletter'];
         if(!$userId){
             //check if it is an update for attributes
-            __d($registerUser, 'registerUser');
+            //__d($registerUser, 'registerUser');
             $userId = $registerUser["userId"];
             $groupkey = $registerUser["customergroup"];
             $newsletter = $registerUser["newsletter"];

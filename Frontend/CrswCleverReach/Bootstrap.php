@@ -437,16 +437,16 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
      * @param Enlight_Event_EventArgs $args
      */
     public function onSaveRegisterMainDataAttributes(Enlight_Event_EventArgs $args) {
-        __d("onSaveRegisterMainDataAttributes");
+        //__d("onSaveRegisterMainDataAttributes");
         if($this->transferOrderCode()){
             $this->registerNamespace();
             $return = $args->getReturn();
-            __d($return, "Attributes");
+            //__d($return, "Attributes");
             list($sql, $userId) = $return;
             $userId = $userId[0];
             $data = array();
             $data["userId"] = $userId;
-            __d($data, "UserId");
+            //__d($data, "UserId");
             Shopware_Controllers_Frontend_SwpCleverReach::init('save_register', $data, $this->request->getParams(), $this->extra_params);
         }
     }
