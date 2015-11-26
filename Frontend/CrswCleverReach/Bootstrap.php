@@ -8,20 +8,6 @@
  * @author ma, nf - cleverreach@nfxmedia.de
  * @package nfxMEDIA
  * @subpackage nfxCrswCleverReach
- * @version 5.0.1 / fix frontend searchProducts action (get the correct searched "product" parameter) + add Newsletter Opt-In Feature + remove data transfer from newsletter update during the ordering process + Plugin Manager easier configuration // 2013-11-05
- * @version 5.0.2 / use receiverGetByEmail to check if the customer already exists + remove "enable opt-in" checkbox (the forms list will alwyas be displayed; if the form is selected => the optin is enabled) + reorganize tabs // 2013-11-22
- * @version 5.0.3 / some design changes + 'newsletter_extra_info' value is 'Shopware' and it is not editable anymore + move 'export_limit' to ''First Export' tab + add 'Reset' button // 2013-11-28
- * @version 5.0.4 / fix the issue when the customer has an invalid customergroup // 2013-12-09
- * @version 5.0.5 / exclude cancelled orders from Erst-Export // 2014-04-23
- * @version 5.0.6 / fix the category tree for product search // 2014-11-14
- * @version 5.0.7 / add some try-catch to the frontend controller // 2014-12-02
- * @version 5.0.8 / add tooltips to some customer groups // 2014-12-08
- * @version 5.0.9 / the Shopware newsletter email is not sent anymore // 2015-01-21
- * @version 6.0.1 / SW5: remove streetnumber // 2015-03-20
- * @version 6.0.2 / add "individual adjustments" // 2015-04-09
- * @version 6.0.3 / fix linkDetailsRewrited // 2015-05-07
- * @version 6.0.4 / send Bestell-Code to CleverReach when the attributes are saved // 2015-05-14
- * @version 6.0.5 / fix newsletter issue for the Bestell-Code case // 2015-07-23
  */
 /*
  * development debug function
@@ -31,8 +17,11 @@ if (!function_exists('__d')) {
     function __d($o, $msg = null) {
         $f = fopen(realpath(dirname(__FILE__)) . '/tmp/debug.shopware.' . date('Ymd', strtotime('Last Monday', time())), 'a+');
 
-        if ($msg)
-            fwrite($f, "$msg:\n");
+
+        fwrite($f, "---" . date("Y-m-d H:i:s") . ": \n");
+        if ($msg) {
+            fwrite($f, "$msg: \n");
+        }
 
         fwrite($f, print_r($o, true));
         fwrite($f, "\n");
@@ -113,11 +102,9 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
      */
     public function update($version) {
         $this->subscribeEvents();
+        $this->createTables();
         $this->createForm();
         $this->createTranslations();
-        if ($version < "5.0.3") {
-            $this->sql_v_5_0_3();
-        }
         return array('success' => true, 'invalidateCache' => array('backend', 'proxy'));
     }
 
@@ -168,11 +155,17 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
      * @return void
      */
     public function createForm() {
+        $index = 0;
+        $positions = array();
         $form = $this->Form();
         $form->setElement('text', 'individual_adjustments_code', array(
             'label' => 'individuelle Anpassungen',
-            'value' => ''
+            'value' => '',
+            'scope' => \Shopware\Models\Config\Element::SCOPE_SHOP
         ));
+        $positions['individual_adjustments_code'] = $index++;
+        $form->setElement('checkbox', 'enable_debug', array('label' => 'Debug Mode', 'value' => true));
+        $positions['enable_debug'] = $index++;
     }
 
     /**
@@ -187,7 +180,8 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
 
         $translations = array(
             'en_GB' => array(
-                'individual_adjustments_code' => 'Individual adjustments'
+                'individual_adjustments_code' => 'Individual adjustments',
+                'enable_debug' => 'Debug Mode'
             )
         );
         $shopRepository = Shopware()->Models()->getRepository('\Shopware\Models\Shop\Locale');
@@ -238,7 +232,7 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
         $this->subscribeEvent('Shopware_Controllers_Frontend_Newsletter::sendMail::replace', 'onReplaceSendNewsletterEmail');
 
         $this->subscribeEvent('Enlight_Controller_Action_PreDispatch', 'onPreDispatch');
-        
+
         //hook user attributes changes
         $this->subscribeEvent('Shopware_Modules_Admin_SaveRegisterMainDataAttributes_FilterSql', 'onSaveRegisterMainDataAttributes');
     }
@@ -404,8 +398,13 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
     public function onReplaceSendNewsletterEmail(Enlight_Hook_HookArgs $args) {
         try {
             $shopID = Shopware()->Shop()->getId();
-            $settings = $this->getSettings($shopID);
-            if ($settings["groups"] == true) {
+            $config = $this->getConfig($shopID);
+            if ($this->Config()->enable_debug) {
+                __d("onReplaceSendNewsletterEmail");
+                __d($shopID, "shopID");
+                __d($config, "config");
+            }
+            if ($config["groups"]) {
                 $customer = Shopware()->System()->sMODULES['sAdmin']->sGetUserData();
                 if (!$customer['additional']['user']['id'])
                     $customergroup = 100; //Interessenten
@@ -416,11 +415,19 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
                     }
                 }
                 $list = Shopware()->Db()->fetchRow("SELECT listID, formID FROM swp_cleverreach_assignments WHERE shop='" . $shopID . "' AND customergroup='" . $customergroup . "'");
+                if ($this->Config()->enable_debug) {
+                    __d($args->getTemplate(), "email template");
+                    __d($customergroup, "customergroup");
+                    __d($list, "list");
+                }
                 if ($list["listID"]) {
                     if ($args->getTemplate() == 'sNEWSLETTERCONFIRMATION' && $list["formID"]) {
                         return;
                     }
                 }
+            }
+            if ($this->Config()->enable_debug) {
+                __d("send email " . $args->getTemplate());
             }
             $args->setReturn(
                     $args->getSubject()->executeParent(
@@ -431,22 +438,28 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
             
         }
     }
-    
+
     /**
      * hook user attributes changes => send Bestell-Code to CleverReach
      * @param Enlight_Event_EventArgs $args
      */
     public function onSaveRegisterMainDataAttributes(Enlight_Event_EventArgs $args) {
-        //__d("onSaveRegisterMainDataAttributes");
-        if($this->transferOrderCode()){
+        if ($this->Config()->enable_debug) {
+            __d("onSaveRegisterMainDataAttributes");
+        }
+        if ($this->transferOrderCode()) {
             $this->registerNamespace();
             $return = $args->getReturn();
-            //__d($return, "Attributes");
+            if ($this->Config()->enable_debug) {
+                __d($return, "Attributes");
+            }
             list($sql, $userId) = $return;
             $userId = $userId[0];
             $data = array();
             $data["userId"] = $userId;
-            //__d($data, "UserId");
+            if ($this->Config()->enable_debug) {
+                __d($data, "UserId");
+            }
             Shopware_Controllers_Frontend_SwpCleverReach::init('save_register', $data, $this->request->getParams(), $this->extra_params);
         }
     }
@@ -463,103 +476,106 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
                 PRIMARY KEY (shop, customergroup)
         )';
         $sqls[] = "CREATE TABLE IF NOT EXISTS swp_cleverreach_configs (
-                name VARCHAR(250) NOT NULL DEFAULT '',
-                value text NULL,
-                PRIMARY KEY (name)
-        )";
-        $sqls[] = "CREATE TABLE IF NOT EXISTS swp_cleverreach_settings (
                 shop INT(11) NOT NULL,
-                type VARCHAR(100) NOT NULL,
-                name VARCHAR(100) NOT NULL DEFAULT '',
-                value text NULL,
-                PRIMARY KEY (shop, type, name)
+                api_key text NULL,
+                wsdl_url text NULL,
+                export_limit INT(11) default '50' NOT NULL,
+                newsletter_extra_info text NULL,
+                first_export tinyint(1) default '0' NULL,
+                products_search tinyint(1) default '0' NULL,
+                groups tinyint(1) default '0' NULL,
+                status tinyint(1) default '0' NULL,
+                `date` timestamp NULL,
+                PRIMARY KEY (shop)
         )";
-        $sqls[] = "
-            TRUNCATE TABLE swp_cleverreach_configs;
-        ";
-        $sqls[] = "
-            TRUNCATE TABLE swp_cleverreach_settings;
-        ";
-        $sqls[] = "
-            INSERT INTO swp_cleverreach_configs(name, value) VALUES
-            ('api_key',''),
-            ('wsdl_url','http://api.cleverreach.com/soap/interface_v5.1.php?wsdl'),
-            ('status',''),
-            ('date','');
-        ";
-        $sqls[] = "
-            INSERT INTO swp_cleverreach_settings(shop, type, name, value) VALUES
-            (-1,'install','export_limit','50'),
-            (-1,'install','newsletter_extra_info','Shopware'),
-            (-1,'check','first_export','false'),
-            (-1,'check','products_search','false'),
-            (-1,'check','groups','false');
-        ";
-
-        foreach ($sqls as $sql)
+        $exists = Shopware()->Db()->fetchOne("SHOW TABLES LIKE 'swp_cleverreach_configs'");
+        if ($exists) {
+            $exists = Shopware()->Db()->fetchOne("SHOW COLUMNS FROM swp_cleverreach_configs WHERE Field LIKE 'shop';");
+            if (!$exists) {
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `date` timestamp NULL AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `status` tinyint(1) default '0' AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `groups` tinyint(1) default '0' AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `products_search` tinyint(1) default '0' AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `first_export` tinyint(1) default '0' AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `newsletter_extra_info` text NULL AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `export_limit` INT(11) default '50' NOT NULL AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `wsdl_url` text NULL AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `api_key` text NULL AFTER `value`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD COLUMN `shop` INT(11) NOT NULL AFTER `value`;";
+                $sqls[] = "
+                        INSERT INTO swp_cleverreach_configs(shop, api_key, wsdl_url, export_limit, newsletter_extra_info, first_export, products_search, groups, status, date)
+                        SELECT DISTINCT shop, (SELECT value FROM `swp_cleverreach_configs` WHERE name= 'api_key') api_key,
+                                (SELECT value FROM `swp_cleverreach_configs` WHERE name= 'wsdl_url') wsdl_url, 
+                                COALESCE((SELECT z.value FROM `swp_cleverreach_settings` z WHERE shop=x.shop AND z.name = 'export_limit'),50) export_limit, 
+                                COALESCE((SELECT z.value FROM `swp_cleverreach_settings` z WHERE shop=x.shop AND z.name = 'newsletter_extra_info'),'Shopware') newsletter_extra_info, 
+                                COALESCE((SELECT CASE z.value WHEN 'true' THEN 1 ELSE 0 END FROM `swp_cleverreach_settings` z WHERE shop=x.shop AND z.name = 'first_export'),0) first_export, 
+                                COALESCE((SELECT CASE z.value WHEN 'true' THEN 1 ELSE 0 END FROM `swp_cleverreach_settings` z WHERE shop=x.shop AND z.name = 'products_search'),0) products_search, 
+                                COALESCE((SELECT CASE z.value WHEN 'true' THEN 1 ELSE 0 END FROM `swp_cleverreach_settings` z WHERE shop=x.shop AND z.name = 'groups'),0) groups, 
+                                (SELECT CASE value WHEN 'true' THEN 1 WHEN 'false' THEN 0 ELSE NULL END FROM `swp_cleverreach_configs` WHERE name= 'status') `status`, 
+                                (SELECT NULLIF(value,'') FROM `swp_cleverreach_configs` WHERE name= 'date') date 
+                        FROM `swp_cleverreach_settings`  x WHERE shop <> -1;
+                        ";
+                $sqls[] = "
+                        DELETE FROM swp_cleverreach_configs WHERE IFNULL(name,'') <> '';
+                        ";
+                $sqls[] = "
+                        UPDATE swp_cleverreach_configs
+                        SET export_limit = CASE WHEN NULLIF(export_limit,0) IS NULL THEN 50 ELSE export_limit END,
+                            newsletter_extra_info = CASE WHEN newsletter_extra_info IS NULL THEN 'Shopware' ELSE newsletter_extra_info END,
+                            first_export = CASE WHEN NULLIF(first_export,0) IS NULL THEN 0 ELSE first_export END,
+                            products_search = CASE WHEN NULLIF(products_search,0) IS NULL THEN 0 ELSE products_search END,
+                            groups = CASE WHEN NULLIF(groups,0) IS NULL THEN 0 ELSE groups END;
+                        ";
+                $sqls[] = "ALTER TABLE swp_cleverreach_configs DROP COLUMN `value`;";
+                $sqls[] = "ALTER TABLE swp_cleverreach_configs DROP COLUMN `name`;";
+                $sqls[] = "ALTER TABLE `swp_cleverreach_configs` ADD PRIMARY KEY (`shop`);";
+            }
+        }
+        $sqls[] = 'DROP TABLE IF EXISTS swp_cleverreach_settings';
+        foreach ($sqls as $sql) {
             Shopware()->Db()->exec($sql);
-    }
-
-    /**
-     * Update 'newsletter_extra_info' to 'Shopware' - this will not be editable anymore
-     */
-    protected function sql_v_5_0_3() {
-        $sqls[] = "
-            UPDATE swp_cleverreach_settings
-            SET value = 'Shopware'
-            WHERE name = 'newsletter_extra_info';
-        ";
-
-        foreach ($sqls as $sql)
-            Shopware()->Db()->exec($sql);
+        }
     }
 
     /**
      * get api_key and wsdl_url from config
-     * @return <type>
+     * @param type $shopID
+     * @return boolean
      */
-    public function getConfig() {
-        $params = array();
+    public function getConfig($shopID) {
         $sql = "
-            SELECT name, value
+            SELECT *
             FROM swp_cleverreach_configs
+            WHERE shop = ?
             ";
-        $results = Shopware()->Db()->fetchAll($sql);
-        foreach ($results as $result) {
-            if ($result["value"] === "true")
-                $result["value"] = true;
-            if ($result["value"] === "false")
-                $result["value"] = false;
-            $params[$result["name"]] = $result["value"];
-        }
-        return $params;
+        $result = Shopware()->Db()->fetchRow($sql, array($shopID));
+        return $result;
     }
 
     /**
-     * get the settings for a specific shop
-     * @param <type> $shopId
-     * @return <type>
+     * update the configuration with a sql statement
+     * @param type $shop
+     * @param type $params
      */
-    public function getSettings($shopId) {
-        $params = array();
-        $sql = "
-            SELECT cs1.name,
-                    IFNULL(cs2.value, cs1.value) AS value
-            FROM `swp_cleverreach_settings` cs1
-            LEFT JOIN `swp_cleverreach_settings` cs2 ON cs1.type = cs2.type
-                                                            AND cs1.name = cs2.name
-                                                            AND cs2.shop = ?
-            WHERE cs1.shop = -1
-            ";
-        $results = Shopware()->Db()->fetchAll($sql, array($shopId));
-        foreach ($results as $result) {
-            if ($result["value"] === "true")
-                $result["value"] = true;
-            if ($result["value"] === "false")
-                $result["value"] = false;
-            $params[$result["name"]] = $result["value"];
+    public function updateConfigs($shop, $params) {
+        $set = "";
+        foreach ($params as $name => $value) {
+            $set .= ($set) ? " , " : " ";
+            $set .= "`$name` = '" . $value . "'";
         }
-        return $params;
+        if ($set) {
+            $exists = Shopware()->Db()->fetchOne("SELECT shop FROM swp_cleverreach_configs WHERE shop = ?", array($shop));
+            if ($exists) {
+                $sql = "
+                    UPDATE swp_cleverreach_configs
+                    SET $set
+                    WHERE shop = ?
+                    ";
+            } else {
+                $sql = "INSERT INTO swp_cleverreach_configs SET $set, newsletter_extra_info = 'Shopware', shop = ?";
+            }
+            Shopware()->Db()->query($sql, array($shop));
+        }
     }
 
     /**
@@ -595,31 +611,60 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
     }
 
     /**
-     * Get version tag of this plugin to display in manager
-     *
+     * Reads Plugins Meta Information
      * @return string
      */
-    public function getVersion() {
-        return '6.0.5';
+    public function getInfo() {
+        $info = json_decode(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'plugin.json'), true);
+
+        if ($info) {
+            return array(
+                'version' => $info['currentVersion'],
+                'author' => $info['author'],
+                'copyright' => $info['copyright'],
+                'label' => $this->getLabel(),
+                'source' => $info['source'],
+                'description' => $info['description'],
+                'license' => $info['license'],
+                'support' => $info['support'],
+                'link' => $info['link'],
+                'changes' => $info['changelog'],
+                'revision' => '1'
+            );
+        } else {
+            throw new Exception('The plugin has an invalid version file.');
+        }
     }
 
     /**
-     * get the main info for the plugin
+     * Returns the current version of the plugin.
+     *
+     * @return string|void
+     * @throws Exception
      */
-    public function getInfo() {
-        return array(
-            'version' => $this->getVersion(),
-            'autor' => 'CleverReach & nfx:MEDIA',
-            'copyright' => 'Copyright (c) 2013-2014, CleverReach GmbH & Co. KG, nfx:MEDIA',
-            'label' => 'CleverReach - E-Mail Marketing',
-            'support' => 'http://support.cleverreach.de',
-            'link' => 'http://www.cleverreach.de/frontend/?rk=shopware',
-            'source' => '',
-            'description' => '<iframe src="http://cloud-files.crsend.com/html/shopware_plugin/plugin_info.html"  style="min-height:450px; height:auto !important;width:100%" frameBorder="0"></iframe>',
-            'license' => '',
-            'changes' => '',
-            'revision' => '4840'
-        );
+    public function getVersion() {
+        $info = json_decode(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'plugin.json'), true);
+
+        if ($info) {
+            return $info['currentVersion'];
+        } else {
+            throw new Exception('The plugin has an invalid version file.');
+        }
+    }
+
+    /**
+     * Get (nice) name for plugin manager list
+     *
+     * @return string
+     */
+    public function getLabel() {
+        $info = json_decode(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'plugin.json'), true);
+
+        if ($info) {
+            return $info['label']["de"];
+        } else {
+            throw new Exception('The plugin has an invalid version file.');
+        }
     }
 
 }

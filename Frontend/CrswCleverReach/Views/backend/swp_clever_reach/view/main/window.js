@@ -4,10 +4,9 @@ Ext.define('Shopware.apps.SwpCleverReach.view.main.Window', {
     id:'SwpCleverReachMainWindow',
     alias: 'widget.swp_clever_reach-main-window',
     iconCls: 'cleverreachicon',
-    layout: 'fit',
+    layout: 'border',
     width: 860,
-    height: '90%',
-    //maximized: true,
+    height: 600,
     autoShow: true,
 
     snippets: {
@@ -18,31 +17,33 @@ Ext.define('Shopware.apps.SwpCleverReach.view.main.Window', {
         var me = this;
 
         me.title = me.snippets.title;
+        me.items = me.getItems();
 
-        this.callParent(arguments);
+        me.callParent(arguments);
     },
-    
-    createTabPanel: function() {
+    /**
+     * @return array
+     */
+    getItems: function() {
         var me = this;
 
-        me.installForm = Ext.widget('swp_clever_reach-install', {
-            configs: me.configs,
-            settingsStore: me.settingsStore,
-            assignmentsStore: me.assignmentsStore,
-            groupsStore: me.groupsStore,
-            formsStore: me.formsStore
-        });
-        me.first_exportForm = Ext.widget('swp_clever_reach-first-export', {
-            shopsStore: me.shopsStore
-        });
-
-        me.tabpanel = Ext.create('Ext.tab.Panel', {
-            items: [
-            me.installForm,
-            me.first_exportForm
-            ]
-        });
-
-        me.add(me.tabpanel);
+        me.tabs = new Ext.TabPanel({
+                            region: 'center',
+                            activeTab: 0,
+                            bodyBorder: false,
+                            border: false,
+                            plain:true,
+                            hideBorders:false,
+                            defaults:{ 
+                                autoScroll: true
+                            },
+                            items:[
+                            ]
+                        });
+        me.tabs.getTabBar().setVisible(false);
+        return [{
+                    xtype: 'swp_clever_reach-shop-list',
+                    store: me.shopStore
+                }, me.tabs];
     }
 });

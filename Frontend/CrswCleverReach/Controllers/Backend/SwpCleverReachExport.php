@@ -10,11 +10,9 @@ class Shopware_Controllers_Backend_SwpCleverReachExport extends Shopware_Control
         $shopID = $this->Request()->getParam('shopID');
         $limit_lower = ($this->Request()->getParam('limit_lower')) ?: 0;
 
-        $config = $this->Plugin()->getConfig();
-        $settings = $this->Plugin()->getSettings($shopID);
+        $config = $this->Plugin()->getConfig($shopID);
 
-        $export_limit = $settings["export_limit"];
-
+        $export_limit = $config["export_limit"];
         if($export_limit > 50 || $export_limit == "")
             $export_limit = 50;
         if(!$this->Request()->getParam('export_type'))
@@ -22,12 +20,31 @@ class Shopware_Controllers_Backend_SwpCleverReachExport extends Shopware_Control
         elseif($this->Request()->getParam('export_type') == 'interested')
             $result = $this->processNewsletterInterested($limit_lower, $export_limit, $shopID, $config);
 
+        if(!$result["next_target"]){
+            $this->Plugin()->updateConfigs($shopID, array("first_export" => 1));
+        }
         $this->View()->assign(array(
             'success' => true,
             'message' => $result["message"],
-            'next_target' => $result["next_target"]
+            'next_target' => $result["next_target"],
+            'export_limit' => $export_limit
         ));
     }
+    
+    /**
+     * save export limit for that shop
+     */
+    public function saveExportLimitAction() {
+        $shopId = $this->Request()->getParam("shopId");
+        $export_limit = $this->Request()->getParam("export_limit");
+        if ($shopId) {
+            $this->Plugin()->updateConfigs($shopId, array("export_limit" => $export_limit));
+                
+        }
+
+        $this->View()->assign(array('success' => true));
+    }
+    
     /**
      * process the first export for registered customers
      */

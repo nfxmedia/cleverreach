@@ -3,5 +3,5 @@ Ext.define('Shopware.apps.SwpCleverReach.store.Shop', {
     model: 'Shopware.apps.SwpCleverReach.model.Shop',
     remoteSort: false,
     remoteFilter: false,
-    autoLoad: false
+    autoLoad: true
 });

@@ -1,5 +1,8 @@
 Ext.define('Shopware.apps.SwpCleverReach.model.Group', {
     extend: 'Ext.data.Model',
+    requires:[
+        'Shopware.apps.SwpCleverReach.model.Form'
+    ],
     fields: [
             { name: 'id', type: 'int' },
             { name: 'name',  type: 'string' }

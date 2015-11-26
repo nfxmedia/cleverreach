@@ -1,0 +1,55 @@
+{
+    "label": {
+        "de": "CleverReach - E-Mail Marketing",
+        "en": "CleverReach - E-Mail Marketing"
+    },
+    "copyright": "Copyright (c) 2013-2014, CleverReach GmbH & Co. KG, nfx:MEDIA",
+    "license": "",
+    "link": "http://www.cleverreach.de/frontend/?rk=shopware",
+    "author": "CleverReach & nfx:MEDIA",
+    "support": "http://support.cleverreach.de",
+    "description": "<iframe src='http://cloud-files.crsend.com/html/shopware_plugin/plugin_info.html'  style='min-height:450px; height:auto !important;width:100%' frameBorder='0'></iframe>",
+    "currentVersion": "7.0.1",
+    "changelog": {
+        "de": {
+            "7.0.1": "Subshop-Support + add debugging // 2015-11-17",
+            "6.0.5": "fix newsletter issue for the Bestell-Code case // 2015-07-23",
+            "6.0.4": "send Bestell-Code to CleverReach when the attributes are saved // 2015-05-14",
+            "6.0.3": "fix linkDetailsRewrited // 2015-05-07",
+            "6.0.2": "add 'individual adjustments' // 2015-04-09",
+            "6.0.1": "SW5: remove streetnumber // 2015-03-20",
+            "5.0.9": "the Shopware newsletter email is not sent anymore // 2015-01-21",
+            "5.0.8": "add tooltips to some customer groups // 2014-12-08",
+            "5.0.7": "add some try-catch to the frontend controller // 2014-12-02",
+            "5.0.6": "fix the category tree for product search // 2014-11-14",
+            "5.0.5": "exclude cancelled orders from Erst-Export // 2014-04-23",
+            "5.0.4": "fix the issue when the customer has an invalid customergroup // 2013-12-09",
+            "5.0.3": "some design changes + 'newsletter_extra_info' value is 'Shopware' and it is not editable anymore + move 'export_limit' to ''First Export' tab + add 'Reset' button // 2013-11-28",
+            "5.0.2": "use receiverGetByEmail to check if the customer already exists + remove 'enable opt-in' checkbox (the forms list will alwyas be displayed; if the form is selected => the optin is enabled) + reorganize tabs // 2013-11-22",
+            "5.0.1": "fix frontend searchProducts action (get the correct searched 'product' parameter) + add Newsletter Opt-In Feature + remove data transfer from newsletter update during the ordering process + Plugin Manager easier configuration // 2013-11-05"
+        },
+        "en": {
+            "7.0.1": "Subshop-Support + add debugging // 2015-11-17",
+            "6.0.5": "fix newsletter issue for the Bestell-Code case // 2015-07-23",
+            "6.0.4": "send Bestell-Code to CleverReach when the attributes are saved // 2015-05-14",
+            "6.0.3": "fix linkDetailsRewrited // 2015-05-07",
+            "6.0.2": "add 'individual adjustments' // 2015-04-09",
+            "6.0.1": "SW5: remove streetnumber // 2015-03-20",
+            "5.0.9": "the Shopware newsletter email is not sent anymore // 2015-01-21",
+            "5.0.8": "add tooltips to some customer groups // 2014-12-08",
+            "5.0.7": "add some try-catch to the frontend controller // 2014-12-02",
+            "5.0.6": "fix the category tree for product search // 2014-11-14",
+            "5.0.5": "exclude cancelled orders from Erst-Export // 2014-04-23",
+            "5.0.4": "fix the issue when the customer has an invalid customergroup // 2013-12-09",
+            "5.0.3": "some design changes + 'newsletter_extra_info' value is 'Shopware' and it is not editable anymore + move 'export_limit' to ''First Export' tab + add 'Reset' button // 2013-11-28",
+            "5.0.2": "use receiverGetByEmail to check if the customer already exists + remove 'enable opt-in' checkbox (the forms list will alwyas be displayed; if the form is selected => the optin is enabled) + reorganize tabs // 2013-11-22",
+            "5.0.1": "fix frontend searchProducts action (get the correct searched 'product' parameter) + add Newsletter Opt-In Feature + remove data transfer from newsletter update during the ordering process + Plugin Manager easier configuration // 2013-11-05"
+        }
+    },
+    "compatibility": {
+        "minimumVersion": "4.0.0",
+        "maximumVersion": null,
+        "blacklist": [
+        ]
+    }
+}

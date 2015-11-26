@@ -14,10 +14,13 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
     public static function init($mode, $params, $request, $extra_params) {
         //send data to CleverReach only if the Groups for this shop were set
         $shopID = Shopware()->Shop()->getId();
-        $settings = self::Plugin()->getSettings($shopID);
-        //__d($shopID, "shopID");
-        //__d($settings, "Settings");
-        if ($settings["groups"] != true) {
+        $config = self::Plugin()->getConfig($shopID);
+        $pConfig = self::Plugin()->Config();
+        if ($pConfig->enable_debug) {
+            __d($shopID, "shopID");
+            __d($config, "Config");
+        }
+        if (!$config["groups"]) {
             return;
         }
 
@@ -47,7 +50,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         try {
             self::sendToCleverReach($params['status'], $params['email'], $data, $order, $registerUser, $extra_params);
         } catch (Exception $ex) {
-            //__d($ex->getMessage());
+            if ($pConfig->enable_debug) {
+                __d($ex->getMessage());
+            }
         }
     }
 
@@ -129,6 +134,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
      * prepare data from DB
      */
     protected static function prepareDataFromDb(&$params) {
+        $pConfig = self::Plugin()->Config();
         $select = Shopware()->Db()
                 ->select()
                 ->from(array('u' => 's_user'), array(
@@ -158,7 +164,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                 ->where("u.id = '" . $params['userId'] . "'");
         $customer = Shopware()->Db()->fetchRow($select);
 
-        //__d($customer, "Customer");
+        if ($pConfig->enable_debug) {
+            __d($customer, "Customer");
+        }
 
         if($customer['company']){
             $data['firma'] = $customer['company'];
@@ -250,11 +258,22 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
      * @return type
      */
     protected static function sendToCleverReach($status, $email, $data, $order, $registerUser, $extra_params) {
-        $config = self::Plugin()->getConfig(); // api_key | wsdl_url
-        //__d($email, "Email");
-        //__d($data, "Data");
+        $pConfig = self::Plugin()->Config();
+        $shopID = Shopware()->Shop()->getId();
+        $config = self::Plugin()->getConfig($shopID); // api_key | wsdl_url
+        if ($pConfig->enable_debug) {
+            __d($config, "Config");
+            __d($email, "Email");
+            __d($data, "Data");
+            __d($status, "status");
+        }
+        if(!$config["status"]){
+            return;
+        }
         $listAndForm = self::getListAndForm($order, $registerUser);
-        //__d($listAndForm, "listAndForm");
+        if ($pConfig->enable_debug) {
+            __d($listAndForm, "listAndForm");
+        }
         $listID = $listAndForm["listID"];
         $formID = $listAndForm["formID"];
         if (!$listID) {
@@ -284,8 +303,6 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                 $receiver['orders'] = $order;
 
             $send_optin = false;
-            $shopID = Shopware()->Shop()->getId();
-            $settings = self::Plugin()->getSettings($shopID);
             //check if the customer already exists
             $response = $api->receiverGetByEmail($config["api_key"], $listID, $email, 0); //000 (0) > Basic readout with (de)activation dates
             if ($response->status == "ERROR") {
@@ -294,10 +311,16 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                 }
                 //the customer is not registered yet => add
                 $response = $api->receiverAdd($config["api_key"], $listID, $receiver);
+                if ($pConfig->enable_debug) {
+                    __d($response, "receiverAdd");
+                }
                 //new created user
                 if ($formID) {
                     // deacitvate from newsletter; an opt-in email will be sent instead
                     $response = $api->receiverSetInactive($config["api_key"], $listID, $email);
+                    if ($pConfig->enable_debug) {
+                        __d($response, "receiverSetInactive");
+                    }
                     $send_optin = true;
                 }
             } else {
@@ -313,6 +336,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                         $send_optin = true;
                     }
                 }
+                if ($pConfig->enable_debug) {
+                    __d($response, "receiverUpdate");
+                }
             }
             if ($send_optin) {
                 //send the optin email to the customer
@@ -321,13 +347,19 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                     "user_agent" => $extra_params["user_agent"],
                     "referer" => $extra_params["referer"],
                     "postdata" => $postdata,
-                    "info" => $settings["newsletter_extra_info"]
+                    "info" => $config["newsletter_extra_info"]
                 );
                 $response = $api->formsSendActivationMail($config["api_key"], $formID, $email, $doidata);
+                if ($pConfig->enable_debug) {
+                    __d($response, "formsSendActivationMail");
+                }
             }
         } else {
             // deacitvate from newsletter
             $response = $api->receiverSetInactive($config["api_key"], $listID, $email);
+            if ($pConfig->enable_debug) {
+                __d($response, "receiverSetInactive");
+            }
         }
     }
 
@@ -341,6 +373,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
      */
     protected static function getListAndForm($order, $registerUser) {
         $shopID = Shopware()->Shop()->getId();
+        $pConfig = self::Plugin()->Config();
         $customer = Shopware()->System()->sMODULES['sAdmin']->sGetUserData();
 
         $userId = $customer['additional']['user']['id'];
@@ -348,7 +381,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $newsletter = $customer['additional']['user']['newsletter'];
         if(!$userId){
             //check if it is an update for attributes
-            //__d($registerUser, 'registerUser');
+            if ($pConfig->enable_debug) {
+                __d($registerUser, 'registerUser');
+            }
             $userId = $registerUser["userId"];
             $groupkey = $registerUser["customergroup"];
             $newsletter = $registerUser["newsletter"];

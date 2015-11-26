@@ -1,12 +1,13 @@
 //{namespace name=backend/swp_clever_reach/snippets}
-Ext.define('Shopware.apps.SwpCleverReach.view.main.Assignments', {
+Ext.define('Shopware.apps.SwpCleverReach.view.shop.Assignments', {
     extend: 'Ext.grid.Panel',
-    alias: 'widget.swp_clever_reach-assignments',
+    alias: 'widget.swp_clever_reach-shop-assignments',
     flex:3,
     collapsible: true,
     border: false,
     stripeRows:true,
     autoScroll:true,
+    disabled: true,
 
     snippets: {
         title: '{s name="assignments_title"}Shop/Kundengruppen-Listen-Zuordnung{/s}',
@@ -29,8 +30,6 @@ Ext.define('Shopware.apps.SwpCleverReach.view.main.Assignments', {
         me.columns = me.getColumns();
         me.editor = me.getRowEditorPlugin();
         me.plugins = [ me.editor ];
-        me.features = [ me.createGroupingFeature() ];
-        me.store = me.assignmentsStore;
         me.callParent(arguments);
     },
 
@@ -88,21 +87,6 @@ Ext.define('Shopware.apps.SwpCleverReach.view.main.Assignments', {
         });
     },
 
-    createGroupingFeature: function() {
-        var me = this;
-
-        return Ext.create('Ext.grid.feature.Grouping', {
-            groupHeaderTpl: Ext.create('Ext.XTemplate',
-                '{literal}{ name:this.formatHeader }{/literal}',
-                {
-                    formatHeader: function(field) {
-                        return me.snippets.columns.shop_name + ': '+ field;
-                    }
-                })/*,
-            collapsible: false*/
-        });
-    },
-
     renderGroupsColumn: function(value, metaData, record) {
         var me = this,
             group_record;
@@ -147,7 +131,6 @@ Ext.define('Shopware.apps.SwpCleverReach.view.main.Assignments', {
         var me = this,
         parent = me.parent,
         combo = parent.getPlugin('rowEditing').editor.form.findField('formID');
-
         combo.clearValue();
         combo.bindStore(parent.groupsStore.getById(record[0].get("id")).getForms());
         //kein Opt-In
