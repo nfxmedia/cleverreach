@@ -2,6 +2,7 @@
 
 
 Nach der Installation finden Sie ein neues Menü-Item in Ihrem Shopware Shop unter der Rubrik Marketing: > CleverReach. Die nachfolgenden zwei Schritte, also 1. die Aktivierung des Plugins und 2. die Zuordnung einer CleverReach-Gruppe für mindestens eine Shopware Kundengruppe, sind obligatorisch als Minimalkonfiguration zur Nutzung Ihres CleverReach-Plugins. Bitte führen Sie anschließend den Erst-Export durch (Punkt 3) und informieren sich unter Punkt 4, 5 und 6 über die weiteren Möglichkeiten zur Einstellung Ihres Plugins.
+Unter Marketing: > Cleverreach können Sie die Einstellungen Ihrer Cleverreach Accounts konfigurieren. Die neueste Version des Tools macht es nun möglich unterschiedliche Konfigurationen für ihre Subshops einzustellen. Es erscheint eine Übersicht in der alle Subshops, die Ihrer Shopware Installation zugeordnet sind, gelistet werden. Durch Anklicken des jeweiligen Shops lassen sich Details öffnen und die Konfiguration durchführen (rechte Seite des Backend Panels). 
 
 **1. Aktivierung** 
 API-Key: Zunächst benötigen Sie den "API-Schlüssel" (API-Key), um Ihr Plugin freizuschalten. Diesen Schlüssel erstellen Sie über Ihren CleverReach-Account und kopieren ihn in Ihr Shopware Backend: Dafür bitte unter https://eu.cleverreach.com einloggen und unter der Rubrik Accout > Extras > API einen API-Schlüssel erstellen. Den API-Schlüssel nun kopieren und in das Shopware-Backend Feld API-Key einfügen. 
@@ -36,7 +37,7 @@ Der nächste Schritt nach der Aktivierung des Tools ist es, CleverReach Gruppen 
 **Mit diesen vorgenannten zwei Schritte, also der Aktivierung des Plugins und der Zuordnung einer CleverReach-Gruppe für mindestens eine Shopware Kundengruppe, haben Sie ihr Plugin bereits erfolgreich konfiguriert.**
 
 **3. Erst-Export**
-Für den Export von bestehenden (Shop-)Kundendaten zu CleverReach gehen Sie bitte auf den Export-Tab. Durch die Betätigung des Buttons “Start Export” gleich neben dem entsprechenden Shop. Die Kundendaten werden in einer Mehrfachverarbeitung (Batch) exportiert: “Export-Limit pro Step (max. 50):“ -  der Standardwert ist hier 50.
+Für den Export von bestehenden (Shop-)Kundendaten zu CleverReach gehen Sie bitte auf den Export-Tab. Durch die Betätigung des Buttons “Start Export” werden die Kundendaten in einer Mehrfachverarbeitung (Batch) exportiert: “Export-Limit pro Step (max. 50):“ -  der Standardwert ist hier 50.
 
 
 ![Abbildung: Abbildung: Backend Erst-Export](/Frontend/CrswCleverReach/docs/Cleverreach_Backend_Erst_Export.png)
@@ -55,7 +56,7 @@ Abbildung: Formular-Vorlagen erstellen
  Im Anschluss daran steht Ihnen dann, zurück im Shopware Shop Fenster, innerhalb des Bereichs Shop/Kundengruppen-Listen-Zuordnung, die zuvor definierte Opt-In-Liste inklusive der Formular-Vorlagen für Ihre CleverReach Gruppe, zur Verfügung. Insofern können Sie nun eine Vorlage auswählen und das Opt-In-Feature für Ihre Kundengruppen aktivieren.
 
 **5. Produkt-Suche aktivieren** 
-Das Produkt-Suche - Feature kann für die Erstellung von Emails mit 'dynamischen Content' verwendet werden. Das Feature kann für einen spezifischen Shop durch einen Klick auf das Icon unter “Produkt-Suche aktivieren” aktiviert werden (in der Rubrik Status-Information).  Entsprechend wird als Hinweis für die erfolgreiche Einrichtung, ein grünes Häkchen in der gleichen Rubrik unter Produkt-Suche zu sehen sein.
+Das Produkt-Suche - Feature kann für die Erstellung von Emails mit 'dynamischen Content' verwendet werden. Das Feature kann für einen spezifischen Shop durch einen Klick auf den Button unter “Produkt-Suche aktivieren” aktiviert werden (in der Rubrik Status-Information).  Entsprechend wird als Hinweis für die erfolgreiche Einrichtung, ein grünes Häkchen in der gleichen Rubrik unter Produkt-Suche zu sehen sein.
 
  Nachzuprüfen ist dies ebenfalls unter https://eu.cleverreach.com - Account > Integrationen/Plugins. Dort gibt es den Bereich Produkt-Suche Links und der neue Link wird angezeigt “Shopware - <Name des Shops>”. 
 
