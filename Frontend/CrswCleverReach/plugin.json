@@ -9,9 +9,10 @@
     "author": "CleverReach & nfx:MEDIA",
     "support": "http://support.cleverreach.de",
     "description": "<iframe src='http://cloud-files.crsend.com/html/shopware_plugin/plugin_info.html'  style='min-height:450px; height:auto !important;width:100%' frameBorder='0'></iframe>",
-    "currentVersion": "7.0.1",
+    "currentVersion": "7.0.2",
     "changelog": {
         "de": {
+            "7.0.2": "search only the active products // 2015-12-17",
             "7.0.1": "Subshop-Support + add debugging // 2015-11-17",
             "6.0.5": "fix newsletter issue for the Bestell-Code case // 2015-07-23",
             "6.0.4": "send Bestell-Code to CleverReach when the attributes are saved // 2015-05-14",
@@ -29,6 +30,7 @@
             "5.0.1": "fix frontend searchProducts action (get the correct searched 'product' parameter) + add Newsletter Opt-In Feature + remove data transfer from newsletter update during the ordering process + Plugin Manager easier configuration // 2013-11-05"
         },
         "en": {
+            "7.0.2": "search only the active products // 2015-12-17",
             "7.0.1": "Subshop-Support + add debugging // 2015-11-17",
             "6.0.5": "fix newsletter issue for the Bestell-Code case // 2015-07-23",
             "6.0.4": "send Bestell-Code to CleverReach when the attributes are saved // 2015-05-14",

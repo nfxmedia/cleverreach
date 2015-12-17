@@ -471,6 +471,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                         FROM s_articles articles
                         JOIN s_articles_categories ac ON ac.articleID = articles.id
                         WHERE (articles.name LIKE '%" . $search . "%' OR articles.description LIKE '%" . $search . "%' OR articles.description_long LIKE '%" . $search . "%')
+                            AND articles.active = 1
                             AND ac.categoryID IN (" . $this->shopCategories . ")
                 ";
 
