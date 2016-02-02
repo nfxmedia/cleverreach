@@ -493,7 +493,6 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                     $url = str_replace('/media/image', '', $url);
 
                     $product = Shopware()->System()->sMODULES['sArticles']->sGetArticleById($product_id);
-
                     if ($product['linkDetailsRewrited'])
                     //$url .= str_replace('http:///', '', $product['linkDetailsRewrited']);
                         $url = $product['linkDetailsRewrited'];
@@ -502,7 +501,11 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
 
                     $out->title = $product['articleName'];
                     $out->description = $product['description_long'];
-                    $out->image = $product['image']['src'][2];
+                    if(self::Plugin()->assertVersionGreaterThenLocal("5.0.0")){
+                        $out->image = $product['image']['thumbnails'][0]['source'];//2 is too large
+                    } else {
+                        $out->image = $product['image']['src'][2];
+                    }
                     $out->price = $product['price'];
                     $out->url = $url;
 
