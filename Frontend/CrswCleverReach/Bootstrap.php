@@ -146,7 +146,7 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
             'class' => 'cleverreachicon',
             'action' => 'index',
             'active' => 1,
-            'parent' => $this->Menu()->findOneBy('label', 'Marketing')
+            'parent' => $this->Menu()->findOneBy(array('label' => 'Marketing'))
         ));
     }
 
