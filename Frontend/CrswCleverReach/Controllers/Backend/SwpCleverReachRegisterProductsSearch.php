@@ -3,8 +3,18 @@
 /**
  * CleverReach register products search backend controller
  */
-class Shopware_Controllers_Backend_SwpCleverReachRegisterProductsSearch extends Shopware_Controllers_Backend_ExtJs {
+class Shopware_Controllers_Backend_SwpCleverReachRegisterProductsSearch extends Shopware_Controllers_Backend_ExtJs implements \Shopware\Components\CSRFWhitelistAware {
 
+    /**
+     * implements CSRFWhitelistAware
+     * @return type
+     */
+    public function getWhitelistedCSRFActions()
+    {
+        return array(
+            'registerProductsSearch'
+        );
+    }
     /**
      * register products search URL to CleverReach
      */

@@ -9,11 +9,12 @@
     "author": "CleverReach & nfx:MEDIA",
     "support": "http://support.cleverreach.de",
     "description": "<iframe src='http://cloud-files.crsend.com/html/shopware_plugin/plugin_info.html'  style='min-height:450px; height:auto !important;width:100%' frameBorder='0'></iframe>",
-    "currentVersion": "8.0.1",
+    "currentVersion": "8.0.2",
     "changelog": {
         "de": {
         },
         "en": {
+            "8.0.2": "SW5.2.4 compatibility / 2016-08-09",
             "8.0.1": "SW5.2.0 compatibility // 2016-06-29",
             "7.0.3": "fix the image on product search for SW5 // 2016-02-02",
             "7.0.2": "search only the active products // 2015-12-17",

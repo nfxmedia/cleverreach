@@ -4,10 +4,20 @@
  * CleverReach Frontend Class
  * @version 4.0.2 / corrected syntax error in line 240 // 2013-10-18
  */
-class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Action {
+class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Action implements \Shopware\Components\CSRFWhitelistAware {
 
     private $shopCategories;
 
+    /**
+     * implements CSRFWhitelistAware
+     * @return type
+     */
+    public function getWhitelistedCSRFActions()
+    {
+        return array(
+            'searchProducts'
+        );
+    }
     /**
      * init function for frontend controller
      */

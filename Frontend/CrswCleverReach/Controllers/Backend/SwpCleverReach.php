@@ -6,8 +6,25 @@
  * - first export
  * - subscribers groups and opt-in forms
  */
-class Shopware_Controllers_Backend_SwpCleverReach extends Shopware_Controllers_Backend_ExtJs {
+class Shopware_Controllers_Backend_SwpCleverReach extends Shopware_Controllers_Backend_ExtJs implements \Shopware\Components\CSRFWhitelistAware {
 
+    /**
+     * implements CSRFWhitelistAware
+     * @return type
+     */
+    public function getWhitelistedCSRFActions()
+    {
+        return array(
+            'getShops',
+            'saveShop',
+            'getGroups',
+            'getAssignments',
+            'saveAssignment',
+            'resetCleverReach',
+            'checkAPI'
+        );
+    }
+    
     /**
      * get all Shops from Shopware
      */
