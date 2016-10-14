@@ -470,23 +470,21 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                 $search = $this->Request()->product;
                 $shopID = $this->Request()->getParam('shopID');
 
-                $categoryID = Shopware()->Db()->fetchOne("SELECT category_id FROM s_core_shops WHERE id='" . $shopID . "'");
+                $categoryID = Shopware()->Db()->fetchOne("SELECT category_id FROM s_core_shops WHERE id=?", array($shopID));
 
                 $this->shopCategories[] = $categoryID;
                 $this->getCategories($categoryID);
                 $this->shopCategories = join(",", $this->shopCategories);
-
+                $search = "%$search%";
                 $sql = "
                         SELECT articles.id
                         FROM s_articles articles
                         JOIN s_articles_categories ac ON ac.articleID = articles.id
-                        WHERE (articles.name LIKE '%" . $search . "%' OR articles.description LIKE '%" . $search . "%' OR articles.description_long LIKE '%" . $search . "%')
+                        WHERE (articles.name LIKE ? OR articles.description LIKE ? OR articles.description_long LIKE ?)
                             AND articles.active = 1
                             AND ac.categoryID IN (" . $this->shopCategories . ")
                 ";
-
-                $product_ids = Shopware()->Db()->fetchCol($sql);
-
+                $product_ids = Shopware()->Db()->fetchCol($sql, array($search,$search,$search));
                 $product_ids = array_unique($product_ids);
 
                 if (count($product_ids) == 0)
