@@ -480,8 +480,10 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                         SELECT articles.id
                         FROM s_articles articles
                         JOIN s_articles_categories ac ON ac.articleID = articles.id
+                        JOIN s_articles_details ad ON articles.id = ad.articleId
                         WHERE (articles.name LIKE ? OR articles.description LIKE ? OR articles.description_long LIKE ?)
                             AND articles.active = 1
+                            AND ad.active = 1
                             AND ac.categoryID IN (" . $this->shopCategories . ")
                 ";
                 $product_ids = Shopware()->Db()->fetchCol($sql, array($search,$search,$search));
