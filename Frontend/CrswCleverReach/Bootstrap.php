@@ -185,24 +185,28 @@ class Shopware_Plugins_Frontend_CrswCleverReach_Bootstrap extends Shopware_Compo
                 'enable_debug' => 'Debug Mode'
             )
         );
-        $shopRepository = Shopware()->Models()->getRepository('\Shopware\Models\Shop\Locale');
+        if($this->assertVersionGreaterThen("5.2")){
+            $this->addFormTranslations($translations);
+        } else {
+            $shopRepository = Shopware()->Models()->getRepository('\Shopware\Models\Shop\Locale');
 
-        foreach ($translations as $locale => $snippets) {
-            $localeModel = $shopRepository->findOneBy(array('locale' => $locale));
+            foreach ($translations as $locale => $snippets) {
+                $localeModel = $shopRepository->findOneBy(array('locale' => $locale));
 
-            foreach ($snippets as $element => $snippet) {
-                if ($localeModel === null)
-                    continue;
+                foreach ($snippets as $element => $snippet) {
+                    if ($localeModel === null)
+                        continue;
 
-                $elementModel = $form->getElement($element);
+                    $elementModel = $form->getElement($element);
 
-                if ($elementModel === null)
-                    continue;
+                    if ($elementModel === null)
+                        continue;
 
-                $translationModel = new \Shopware\Models\Config\ElementTranslation();
-                $translationModel->setLabel($snippet);
-                $translationModel->setLocale($localeModel);
-                $elementModel->addTranslation($translationModel);
+                    $translationModel = new \Shopware\Models\Config\ElementTranslation();
+                    $translationModel->setLabel($snippet);
+                    $translationModel->setLocale($localeModel);
+                    $elementModel->addTranslation($translationModel);
+                }
             }
         }
     }

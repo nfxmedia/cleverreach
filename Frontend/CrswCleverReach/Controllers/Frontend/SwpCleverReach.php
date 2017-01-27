@@ -70,7 +70,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
      * prepare user data from content form
      */
     protected static function prepareDataFromContentform($status, $request) {
-        $data['anrede'] = ($request['salutation'] == 'ms') ? 'Frau' : 'Herr';
+        $data['anrede'] = ($request['salutation'] == 'ms') ? 'Frau' : (($request['salutation'] == 'mr') ? 'Herr' : '');
         $data['vorname'] = $request['firstname'];
         $data['nachname'] = $request['lastname'];
         $data['strasse'] = $request['street'] . ' ' . $request['streetnumber'];
@@ -91,7 +91,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $customer = Shopware()->System()->sMODULES['sAdmin']->sGetUserData();
 
         $data['firma'] = $customer['billingaddress']['company'];
-        $data['anrede'] = ($customer['billingaddress']['salutation'] == 'ms') ? 'Frau' : 'Herr';
+        $data['anrede'] = ($customer['billingaddress']['salutation'] == 'ms') ? 'Frau' : (($customer['billingaddress']['salutation'] == 'mr') ? 'Herr' : '');
         $data['vorname'] = $customer['billingaddress']['firstname'];
         $data['nachname'] = $customer['billingaddress']['lastname'];
         $data['strasse'] = $customer['billingaddress']['street'] . ' ' . $customer['billingaddress']['streetnumber'];
@@ -182,7 +182,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
             $data['firma'] = $customer['company'];
         }
         if($customer['salutation']){
-            $data['anrede'] = ($customer['salutation'] == 'ms') ? 'Frau' : 'Herr';
+            $data['anrede'] = ($customer['salutation'] == 'ms') ? 'Frau' : (($customer['salutation'] == 'mr') ? 'Herr' : '');
         }
         if($customer['firstname']){
             $data['vorname'] = $customer['firstname'];
@@ -319,6 +319,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                 if ($response->statuscode != "20") {
                     return;
                 }
+                if ($pConfig->enable_debug) {
+                    __d($receiver, "receiver");
+                }
                 //the customer is not registered yet => add
                 $response = $api->receiverAdd($config["api_key"], $listID, $receiver);
                 if ($pConfig->enable_debug) {
@@ -338,6 +341,9 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
                 if (!($formID)) {
                     $receiver['activated'] = time();
                     $receiver['deactivated'] = "0";
+                }
+                if ($pConfig->enable_debug) {
+                    __d($receiver, "receiver");
                 }
                 $response = $api->receiverUpdate($config["api_key"], $listID, $receiver);
                 if ($formID && $response->status == "SUCCESS") {
