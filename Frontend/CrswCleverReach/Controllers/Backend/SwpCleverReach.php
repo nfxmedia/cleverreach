@@ -65,6 +65,11 @@ class Shopware_Controllers_Backend_SwpCleverReach extends Shopware_Controllers_B
             "wsdl_url" => $this->Request()->getParam("wsdl_url"),
             "api_key" => $this->Request()->getParam("api_key")
         );
+        if($this->Plugin()->Config()->enable_debug){
+            __d("saveShop");
+            __d($shopId, "shopId");
+            __d($params, "params");
+        }
         $this->Plugin()->updateConfigs($shopId, $params);
 
         $this->View()->assign(array('success' => true));
@@ -172,6 +177,14 @@ class Shopware_Controllers_Backend_SwpCleverReach extends Shopware_Controllers_B
         $customergroup = $this->Request()->getParam("customergroup");
         $listID = $this->Request()->getParam("listID");
         $formID = $this->Request()->getParam("formID");
+        
+        if($this->Plugin()->Config()->enable_debug){
+            __d("saveAssignmentAction");
+            __d($shopId, "shopId");
+            __d($customergroup, "customergroup");
+            __d($listID, "listID");
+            __d($formID, "formID");
+        }
         if ($listID == -1) {
             $listID = "NULL";
         }
@@ -218,6 +231,10 @@ class Shopware_Controllers_Backend_SwpCleverReach extends Shopware_Controllers_B
             DELETE FROM swp_cleverreach_assignments WHERE shop = ?;
         ";
         Shopware()->Db()->query($sql, array($shopId));
+        
+        if($this->Plugin()->Config()->enable_debug){
+            __d("resetCleverReach");
+        }
 
         $this->View()->assign(array('success' => true, 'date' => $date, "message" => ""));
     }

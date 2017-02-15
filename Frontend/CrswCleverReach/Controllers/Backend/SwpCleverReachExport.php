@@ -241,8 +241,19 @@ class Shopware_Controllers_Backend_SwpCleverReachExport extends Shopware_Control
             $this->addAttributes($api, $config["api_key"], $listID);
 
             try {
+                if($this->Plugin()->Config()->enable_debug){
+                    __d("sendBatchToCleverReach");
+                    __d($listID, "listID");
+                    __d($listData, "listData");
+                }
                 $response = $api->receiverAddBatch($config["api_key"], $listID, $listData);
+                if($this->Plugin()->Config()->enable_debug){
+                    __d("--OK--");
+                }
             } catch (Exception $e) {
+                if($this->Plugin()->Config()->enable_debug){
+                    __d($e->getMessage(), __FILE__);
+                }
                 return array(
                     "message" => $e->getMessage(),
                     "next_target" => "");

@@ -27,6 +27,10 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $config = self::Plugin()->getConfig($shopID);
         $pConfig = self::Plugin()->Config();
         if ($pConfig->enable_debug) {
+            __d($mode,"init");
+            __d($params,"params");
+            __d($request,"request");
+            __d($extra_params,"extra_params");
             __d($shopID, "shopID");
             __d($config, "Config");
         }
@@ -272,6 +276,7 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         $shopID = Shopware()->Shop()->getId();
         $config = self::Plugin()->getConfig($shopID); // api_key | wsdl_url
         if ($pConfig->enable_debug) {
+            __d("sendToCleverReach");
             __d($config, "Config");
             __d($email, "Email");
             __d($data, "Data");
@@ -448,6 +453,11 @@ class Shopware_Controllers_Frontend_SwpCleverReach extends Enlight_Controller_Ac
         Shopware()->Plugins()->Controller()->ViewRenderer()->setNoRender();
 
         $params = $this->Request()->getParams();
+        $pConfig = self::Plugin()->Config();
+        if ($pConfig->enable_debug) {
+            __d("searchProductsAction");
+            __d($params,"params");
+        }
         switch ($params["get"]) {
             case "filter":
                 $filters = false;

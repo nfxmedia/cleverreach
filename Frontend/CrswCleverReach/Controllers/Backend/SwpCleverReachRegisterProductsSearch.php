@@ -29,6 +29,11 @@ class Shopware_Controllers_Backend_SwpCleverReachRegisterProductsSearch extends 
             $shop->registerResources(Shopware()->Bootstrap());
 
             $config = $this->Plugin()->getConfig($shopID);
+            if($this->Plugin()->Config()->enable_debug){
+                __d("registerProductsSearch");
+                __d($url, "url");
+                __d($config, "config");
+            }
             if (!$config["status"]) {
                 $success = false;
                 $message = Shopware()->Snippets()->getNamespace('backend/swp_clever_reach/snippets')->get('product_search/message/not_configured', "This shop is not configured");
@@ -37,9 +42,15 @@ class Shopware_Controllers_Backend_SwpCleverReachRegisterProductsSearch extends 
 
                 try {
                     $result = $api->clientRegisterMyProductSearch($config["api_key"], "Shopware - " . Shopware()->Shop()->getName(), $url);
+                    if($this->Plugin()->Config()->enable_debug){
+                        __d($result, "result");
+                    }
                 } catch (Exception $e) {
                     $success = false;
                     $message = $e->getMessage();
+                    if($this->Plugin()->Config()->enable_debug){
+                        __d($message, __FILE__);
+                    }
                 }
 
                 if ($result->status == 'SUCCESS') {
