@@ -9,11 +9,12 @@
     "author": "CleverReach & nfx:MEDIA",
     "support": "http://support.cleverreach.de",
     "description": "<iframe src='http://cloud-files.crsend.com/html/shopware_plugin/plugin_info.html'  style='min-height:450px; height:auto !important;width:100%' frameBorder='0'></iframe>",
-    "currentVersion": "8.0.6",
+    "currentVersion": "8.0.7",
     "changelog": {
         "de": {
         },
         "en": {
+            "8.0.7": "avoid calling API with group id =-1 / 2019-12-09",
             "8.0.6": "add more debugging options / 2017-02-15",
             "8.0.5": "bug fixing: do not use Herr as default for salutation + fix the plugin form transaltion / 2017-01-26",
             "8.0.4": "bug fixing: search only the active variants / 2016-12-08",

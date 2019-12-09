@@ -117,7 +117,7 @@ class Shopware_Controllers_Backend_SwpCleverReach extends Shopware_Controllers_B
                 "id" => -1,
                 "name" => $select_option_forms
             );
-            if($config["status"]){
+            if($config["status"] && $group["id"] != -1){
                 $response = $api->formsGetList($config["api_key"], $group["id"]);
                 if ($response->status != "SUCCESS") {
                     $success = false;
